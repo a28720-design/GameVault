@@ -1,81 +1,97 @@
-﻿@model IEnumerable<GameVault.Models.Game>
+@model IEnumerable<GameVault.Models.Game>
 
 @{
-    ViewData["Title"] = "Games";
-
-    // Cast seguro para usar no asp-items sem conflitos de aspas
+    ViewData["Title"] = "A minha coleção";
     var platformList = ViewData["PlatformId"] as SelectList;
     var statusList = ViewData["Status"] as SelectList;
-
     var searchValue = ViewData["Search"] as string ?? "";
 }
 
-<h1>Games</h1>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">A minha coleção</h1>
+    <a asp-action="Create" class="btn btn-primary">+ Adicionar jogo</a>
+</div>
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Create New</a>
-</p>
-
-<form method="get" asp-action="Index" class="row g-2 mb-3">
+<form method="get" asp-action="Index" class="row g-2 mb-4">
     <div class="col-md-4">
-        <input type="text"
-               name="search"
-               value="@searchValue"
-               class="form-control"
-               placeholder="Search by title..." />
+        <input type="text" name="search" value="@searchValue"
+               class="form-control" placeholder="Pesquisar por título..." />
     </div>
-
     <div class="col-md-3">
-        <select name="platformId"
-                class="form-select"
-                asp-items="platformList">
-            <option value="">All platforms</option>
+        <select name="platformId" class="form-select" asp-items="platformList">
+            <option value="">Todas as plataformas</option>
         </select>
     </div>
-
     <div class="col-md-3">
-        <select name="status"
-                class="form-select"
-                asp-items="statusList">
-            <option value="">All status</option>
+        <select name="status" class="form-select" asp-items="statusList">
+            <option value="">Todos os estados</option>
         </select>
     </div>
-
     <div class="col-md-2 d-grid">
-        <button type="submit" class="btn btn-secondary">Filter</button>
+        <button type="submit" class="btn btn-secondary">Filtrar</button>
     </div>
-
     <div class="col-12">
-        <a asp-action="Index" class="btn btn-link p-0">Clear filters</a>
+        <a asp-action="Index" class="btn btn-link p-0 small">Limpar filtros</a>
     </div>
 </form>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Title</th>
-            <th>Platform</th>
-            <th>Status</th>
-            <th>Rating</th>
-            <th>Release Date</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
+@if (!Model.Any())
+{
+    <div class="text-center text-muted py-5">
+        <p class="fs-5">Nenhum jogo encontrado.</p>
+        <a asp-action="Create" class="btn btn-primary">Adicionar o primeiro jogo</a>
+    </div>
+}
+else
+{
+    <div class="row row-cols-2 row-cols-md-4 row-cols-lg-5 g-3">
         @foreach (var item in Model)
         {
-            <tr>
-                <td>@item.Title</td>
-                <td>@(item.Platform?.Name)</td>
-                <td>@item.Status</td>
-                <td>@item.Rating</td>
-                <td>@item.ReleaseDate</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.GameId">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.GameId">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.GameId">Delete</a>
-                </td>
-            </tr>
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    @if (!string.IsNullOrEmpty(item.CoverUrl))
+                    {
+                        <img src="@item.CoverUrl" class="card-img-top"
+                             alt="@item.Title"
+                             style="height:180px; object-fit:cover;" />
+                    }
+                    else
+                    {
+                        <div class="bg-secondary d-flex align-items-center justify-content-center text-white"
+                             style="height:180px;">
+                            <small>Sem capa</small>
+                        </div>
+                    }
+                    <div class="card-body p-2">
+                        <p class="card-title fw-semibold mb-1 small text-truncate" title="@item.Title">
+                            @item.Title
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge @StatusBadgeClass(item.Status) small">@item.Status</span>
+                            @if (item.Rating.HasValue)
+                            {
+                                <small class="text-muted">⭐ @item.Rating.Value.ToString("0.#")</small>
+                            }
+                        </div>
+                        <small class="text-muted">@item.Platform?.Name</small>
+                    </div>
+                    <div class="card-footer p-1 d-flex justify-content-around">
+                        <a asp-action="Details" asp-route-id="@item.GameId" class="btn btn-sm btn-link p-0">Ver</a>
+                        <a asp-action="Edit" asp-route-id="@item.GameId" class="btn btn-sm btn-link p-0">Editar</a>
+                        <a asp-action="Delete" asp-route-id="@item.GameId" class="btn btn-sm btn-link text-danger p-0">Apagar</a>
+                    </div>
+                </div>
+            </div>
         }
-    </tbody>
-</table>
+    </div>
+}
+
+@functions {
+    string StatusBadgeClass(GameVault.Models.GameStatus s) => s switch
+    {
+        GameVault.Models.GameStatus.Playing   => "bg-success",
+        GameVault.Models.GameStatus.Completed => "bg-info text-dark",
+        GameVault.Models.GameStatus.Dropped   => "bg-danger",
+        _                                     => "bg-secondary"
+    };
+}

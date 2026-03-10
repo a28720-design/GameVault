@@ -1,78 +1,80 @@
-﻿@model GameVault.Models.Game
+@model GameVault.Models.Game
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = Model.Title;
 }
 
-<h1>Details</h1>
+<div class="row">
+    <div class="col-md-3">
+        @if (!string.IsNullOrEmpty(Model.CoverUrl))
+        {
+            <img src="@Model.CoverUrl" alt="Capa de @Model.Title"
+                 class="img-fluid rounded shadow" style="max-height:400px; width:100%; object-fit:cover;" />
+        }
+        else
+        {
+            <div class="bg-secondary rounded d-flex align-items-center justify-content-center text-white"
+                 style="height:300px;">
+                <span>Sem capa</span>
+            </div>
+        }
+    </div>
 
-<div>
-    <h4>Game</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Title)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Title)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ReleaseDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ReleaseDate)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Rating)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Rating)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Status)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Status)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CoverUrl)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CoverUrl)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Platform)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Platform.Name)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.OwnerUserId)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.OwnerUserId)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CreatedAt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CreatedAt)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.UpdatedAt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.UpdatedAt)
-        </dd>
-    </dl>
+    <div class="col-md-9">
+        <h1 class="mb-1">@Model.Title</h1>
+
+        <div class="mb-2">
+            <span class="badge bg-primary fs-6">@Model.Platform?.Name</span>
+            <span class="badge @StatusBadgeClass(Model.Status) fs-6 ms-1">@Model.Status</span>
+            @if (Model.Rating.HasValue)
+            {
+                <span class="badge bg-warning text-dark fs-6 ms-1">⭐ @Model.Rating.Value.ToString("0.#") / 10</span>
+            }
+        </div>
+
+        @if (Model.GameGenres.Any())
+        {
+            <div class="mb-3">
+                @foreach (var gg in Model.GameGenres)
+                {
+                    <span class="badge bg-secondary me-1">@gg.Genre?.Name</span>
+                }
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.Description))
+        {
+            <p class="text-muted">@Model.Description</p>
+        }
+
+        <dl class="row mt-3">
+            @if (Model.ReleaseDate.HasValue)
+            {
+                <dt class="col-sm-4">Data de Lançamento</dt>
+                <dd class="col-sm-8">@Model.ReleaseDate.Value.ToString("dd/MM/yyyy")</dd>
+            }
+            <dt class="col-sm-4">Adicionado em</dt>
+            <dd class="col-sm-8">@Model.CreatedAt.ToString("dd/MM/yyyy")</dd>
+            @if (Model.UpdatedAt.HasValue)
+            {
+                <dt class="col-sm-4">Última atualização</dt>
+                <dd class="col-sm-8">@Model.UpdatedAt.Value.ToString("dd/MM/yyyy")</dd>
+            }
+        </dl>
+
+        <div class="d-flex gap-2 mt-3">
+            <a asp-action="Edit" asp-route-id="@Model.GameId" class="btn btn-outline-primary">Editar</a>
+            <a asp-action="Index" class="btn btn-outline-secondary">Voltar</a>
+        </div>
+    </div>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.GameId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
+
+@functions {
+    string StatusBadgeClass(GameVault.Models.GameStatus s) => s switch
+    {
+        GameVault.Models.GameStatus.Playing   => "bg-success",
+        GameVault.Models.GameStatus.Completed => "bg-info text-dark",
+        GameVault.Models.GameStatus.Dropped   => "bg-danger",
+        _                                     => "bg-secondary"
+    };
+}
