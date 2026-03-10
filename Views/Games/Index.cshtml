@@ -1,0 +1,81 @@
+﻿@model IEnumerable<GameVault.Models.Game>
+
+@{
+    ViewData["Title"] = "Games";
+
+    // Cast seguro para usar no asp-items sem conflitos de aspas
+    var platformList = ViewData["PlatformId"] as SelectList;
+    var statusList = ViewData["Status"] as SelectList;
+
+    var searchValue = ViewData["Search"] as string ?? "";
+}
+
+<h1>Games</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New</a>
+</p>
+
+<form method="get" asp-action="Index" class="row g-2 mb-3">
+    <div class="col-md-4">
+        <input type="text"
+               name="search"
+               value="@searchValue"
+               class="form-control"
+               placeholder="Search by title..." />
+    </div>
+
+    <div class="col-md-3">
+        <select name="platformId"
+                class="form-select"
+                asp-items="platformList">
+            <option value="">All platforms</option>
+        </select>
+    </div>
+
+    <div class="col-md-3">
+        <select name="status"
+                class="form-select"
+                asp-items="statusList">
+            <option value="">All status</option>
+        </select>
+    </div>
+
+    <div class="col-md-2 d-grid">
+        <button type="submit" class="btn btn-secondary">Filter</button>
+    </div>
+
+    <div class="col-12">
+        <a asp-action="Index" class="btn btn-link p-0">Clear filters</a>
+    </div>
+</form>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Platform</th>
+            <th>Status</th>
+            <th>Rating</th>
+            <th>Release Date</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Title</td>
+                <td>@(item.Platform?.Name)</td>
+                <td>@item.Status</td>
+                <td>@item.Rating</td>
+                <td>@item.ReleaseDate</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.GameId">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.GameId">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.GameId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
